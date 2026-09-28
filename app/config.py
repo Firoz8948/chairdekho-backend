@@ -83,6 +83,20 @@ class Settings(BaseSettings):
     SHIPMOZO_DEFAULT_BREADTH: float = 10
     SHIPMOZO_DEFAULT_HEIGHT: float = 10
 
+    # Delhivery One B2C (Express parcel) — manual push from Admin → Orders
+    DELHIVERY_API_TOKEN: str = ""
+    DELHIVERY_BASE_URL: str = "https://track.delhivery.com"
+    # Warehouse name exactly as registered in Delhivery One → Settings → Pickup Locations
+    DELHIVERY_PICKUP_LOCATION: str = ""
+    # Surface | Express
+    DELHIVERY_SHIPPING_MODE: str = "Surface"
+    DELHIVERY_DEFAULT_WEIGHT_GRAMS: float = 500
+    DELHIVERY_DEFAULT_LENGTH: float = 25
+    DELHIVERY_DEFAULT_BREADTH: float = 20
+    DELHIVERY_DEFAULT_HEIGHT: float = 8
+    DELHIVERY_SELLER_GSTIN: str = ""
+    DELHIVERY_HSN_CODE: str = "4202"
+
     # Media storage: "auto" uses BunnyCDN when configured, otherwise local disk
     STORAGE_BACKEND: str = "auto"
     # Local upload directory; relative paths resolve against the backend root

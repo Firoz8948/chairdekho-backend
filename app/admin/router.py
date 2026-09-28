@@ -327,6 +327,35 @@ async def admin_push_order_shipmozo(
     return await shipmozo.push_order_to_shipmozo(order_id)
 
 
+@router.post("/orders/{order_id}/delhivery")
+async def admin_push_order_delhivery(order_id: str, _=Depends(get_current_admin)):
+    """Create the B2C shipment for an order in Delhivery One."""
+    from app.shipping import delhivery
+
+    return await delhivery.push_order_to_delhivery(order_id)
+
+
+@router.get("/orders/{order_id}/delhivery/label")
+async def admin_delhivery_label(order_id: str, _=Depends(get_current_admin)):
+    from app.shipping import delhivery
+
+    return await delhivery.get_label_url(order_id)
+
+
+@router.post("/orders/{order_id}/delhivery/cancel")
+async def admin_cancel_delhivery(order_id: str, _=Depends(get_current_admin)):
+    from app.shipping import delhivery
+
+    return await delhivery.cancel_shipment(order_id)
+
+
+@router.post("/orders/{order_id}/delhivery/track")
+async def admin_track_delhivery(order_id: str, _=Depends(get_current_admin)):
+    from app.shipping import delhivery
+
+    return await delhivery.refresh_tracking(order_id)
+
+
 @router.get("/orders/{order_id}/shipment")
 async def admin_get_order_shipment(
     order_id: str, _=Depends(get_current_admin)
