@@ -11,16 +11,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.models import Product
+from app.models import Product, ProductVariant
+
+
+FEED_BRAND = "Lansdowne Leather"
+
+_BRAND_SUFFIX_RE = re.compile(r"\s*[|\u2013\u2014-]\s*lansdowne?(\s+leather)?\s*$", re.I)
+
+# First match wins; checked against name, then product_type metafield, then category.
+_GOOGLE_CATEGORIES = [
+    (re.compile(r"\bbelt", re.I), "Apparel & Accessories > Clothing Accessories > Belts"),
+    (
+        re.compile(r"wallet|card\s*holder", re.I),
+        "Apparel & Accessories > Handbags, Wallets & Cases > Wallets & Money Clips",
+    ),
+    (re.compile(r"laptop|office\s+bag|briefcase", re.I), "Luggage & Bags > Briefcases"),
+    (
+        re.compile(r"hand\s*bag|sling|tote|cross\s*body|purse|\bbag", re.I),
+        "Apparel & Accessories > Handbags, Wallets & Cases > Handbags",
+    ),
+]
+_DEFAULT_GOOGLE_CATEGORY = "Apparel & Accessories > Handbags, Wallets & Cases"
 
 
 def _site_url() -> str:
-    """Canonical storefront URL for feed product links (must match Merchant claimed URL)."""
-    url = (settings.FRONTEND_URL or "https://www.lansdowneleather.com").rstrip("/")
-    # Prefer www when apex is used
-    if url in {"https://lansdowneleather.com", "http://lansdowneleather.com"}:
-        return "https://www.lansdowneleather.com"
-    return url
+    """Storefront origin for product links; must match the canonical (non-www) URLs."""
+    url = (settings.FRONTEND_URL or "https://lansdowneleather.com").rstrip("/")
+    return re.sub(r"^(https?://)www\.", r"\1", url)
 
 
 def _cdn_base() -> str:
@@ -60,26 +77,67 @@ def _price(amount: float | None) -> str:
 async def load_active_products(db: AsyncSession) -> list[Product]:
     result = await db.execute(
         select(Product)
-        .options(selectinload(Product.images))
+        .options(
+            selectinload(Product.images),
+            selectinload(Product.variants).selectinload(ProductVariant.options),
+        )
         .where(Product.is_active == True)  # noqa: E712
         .order_by(Product.id.asc())
     )
     return list(result.scalars().all())
 
 
+def _metafield(product: Product, key: str) -> str:
+    return _clean_text((product.metafields or {}).get(key), 100)
+
+
+def _google_category(product: Product) -> str:
+    for source in (product.name, _metafield(product, "product_type"), product.category):
+        if not source:
+            continue
+        for pattern, category in _GOOGLE_CATEGORIES:
+            if pattern.search(source):
+                return category
+    return _DEFAULT_GOOGLE_CATEGORY
+
+
+def _gender(product: Product) -> str | None:
+    text = f"{product.name or ''} {_clean_text(product.description, 300)}"
+    if re.search(r"\bunisex\b|men\s*(&|and)\s*women|women\s*(&|and)\s*men", text, re.I):
+        return "unisex"
+    if re.search(r"\b(for\s+women|women'?s|ladies)\b", text, re.I):
+        return "female"
+    if re.search(r"\b(for\s+men|men'?s|gents)\b", text, re.I):
+        return "male"
+    return None
+
+
+def _color(product: Product) -> str:
+    color = _metafield(product, "color")
+    if color:
+        return color[:100]
+    names = [c.get("name") for c in (product.colors or []) if isinstance(c, dict) and c.get("name")]
+    return "/".join(names[:3])[:100]
+
+
+def _total_stock(product: Product) -> int:
+    option_stocks = [o.stock or 0 for v in (product.variants or []) for o in (v.options or [])]
+    return sum(option_stocks) if option_stocks else (product.stock or 0)
+
+
 def product_to_feed_row(product: Product) -> dict:
     images = sorted(product.images or [], key=lambda i: i.position or 0)
     primary = _abs_image(images[0].url) if images else ""
     extra = [_abs_image(img.url) for img in images[1:5] if img.url]
-    availability = "in stock" if (product.stock or 0) > 0 else "out of stock"
-    description = _clean_text(product.description) or _clean_text(
-        f"{product.name} — premium leather from {settings.APP_NAME}"
-    )
+    availability = "in stock" if _total_stock(product) > 0 else "out of stock"
+    title = _BRAND_SUFFIX_RE.sub("", _clean_text(product.name, 200)).strip()[:150]
+    description = _clean_text(product.description) or f"{title} in genuine leather from {FEED_BRAND}."
     link = f"{_site_url()}/products/{product.slug}"
+    material = _metafield(product, "material")
     row = {
         "id": str(product.id),
-        "title": _clean_text(product.name, 150),
-        "description": description or product.name,
+        "title": title,
+        "description": description,
         "availability": availability,
         "condition": "new",
         "price": _price(product.mrp if product.mrp and product.mrp > 0 else product.price),
@@ -87,9 +145,14 @@ def product_to_feed_row(product: Product) -> dict:
         "link": link,
         "image_link": primary,
         "additional_image_link": extra,
-        "brand": settings.APP_NAME,
+        "brand": FEED_BRAND,
         "product_type": _clean_text(product.category, 200) or "Leather Goods",
-        "google_product_category": "Apparel & Accessories > Handbags, Wallets & Cases",
+        "google_product_category": _google_category(product),
+        "gender": _gender(product),
+        "age_group": "adult",
+        "color": _color(product),
+        "material": "Genuine Leather" if not material or "leather" in material.lower() else material,
+        "item_group_id": product.color_group_id or None,
     }
     if product.mrp and product.price and product.mrp > product.price:
         row["price"] = _price(product.mrp)
@@ -117,6 +180,11 @@ def build_facebook_rss(products: list[Product]) -> str:
             if row.get("sale_price")
             else ""
         )
+        attributes = "".join(
+            f"<g:{key}>{escape(row[key])}</g:{key}>"
+            for key in ("gender", "age_group", "color", "material", "item_group_id")
+            if row.get(key)
+        )
         items.append(
             f"""
     <item>
@@ -134,6 +202,7 @@ def build_facebook_rss(products: list[Product]) -> str:
       <g:identifier_exists>false</g:identifier_exists>
       <g:product_type>{escape(row['product_type'])}</g:product_type>
       <g:google_product_category>{escape(row['google_product_category'])}</g:google_product_category>
+      {attributes}
     </item>"""
         )
 
@@ -141,7 +210,7 @@ def build_facebook_rss(products: list[Product]) -> str:
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
-    <title>{escape(settings.APP_NAME)} Product Feed</title>
+    <title>{escape(FEED_BRAND)} Product Feed</title>
     <link>{escape(site)}</link>
     <description>Product catalog feed for Meta Commerce / Google Merchant</description>
     <lastBuildDate>{now}</lastBuildDate>
