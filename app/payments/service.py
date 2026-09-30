@@ -186,6 +186,8 @@ async def create_payment_order(
     # Fail early if cart items are already out of stock (before charging).
     await order_service.assert_stock_available(checkout["items"])
 
+    await order_service.save_checkout_address(user_id, customer, address)
+
     if provider == "payu":
         return await _create_payu_order(checkout, customer, user_id)
     return await _create_razorpay_order(checkout, customer, user_id)

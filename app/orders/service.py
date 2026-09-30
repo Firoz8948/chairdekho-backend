@@ -193,6 +193,28 @@ async def _load_order(db: AsyncSession, order_id: str) -> Order | None:
     return None
 
 
+async def save_checkout_address(user_id: int | None, customer: dict, address: dict) -> None:
+    """Remember the latest checkout address on the customer's profile (best effort)."""
+    if not user_id or not (address or {}).get("line1"):
+        return
+    try:
+        async with AsyncSessionLocal() as db:
+            await auth_service.update_user_profile(
+                db,
+                user_id=user_id,
+                name=(customer or {}).get("name") or None,
+                email=(customer or {}).get("email") or None,
+                address_line1=address.get("line1"),
+                address_line2=address.get("line2") or "",
+                address_landmark=address.get("landmark") or "",
+                address_city=address.get("city"),
+                address_state=address.get("state"),
+                address_pincode=address.get("pincode"),
+            )
+    except Exception as exc:
+        logger.warning("Failed to save checkout address for user %s: %s", user_id, exc)
+
+
 async def create_customer_order(
     customer: dict,
     address: dict,
@@ -294,22 +316,7 @@ async def create_customer_order(
         await db.commit()
         await db.refresh(order, ["items"])
 
-        if user_id:
-            try:
-                await auth_service.update_user_profile(
-                    db,
-                    user_id=user_id,
-                    name=customer.get("name"),
-                    email=customer.get("email"),
-                    address_line1=address.get("line1"),
-                    address_line2=address.get("line2") or "",
-                    address_landmark=address.get("landmark") or "",
-                    address_city=address.get("city"),
-                    address_state=address.get("state"),
-                    address_pincode=address.get("pincode"),
-                )
-            except Exception as exc:
-                logger.warning("Failed to sync profile address from order: %s", exc)
+        await save_checkout_address(user_id, customer, address)
 
         try:
             await notify_order_placed(
