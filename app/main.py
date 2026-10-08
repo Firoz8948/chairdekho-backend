@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.admin.router import router as admin_router
+from app.admin_switch.router import router as admin_switch_router
 from app.auth.router import router as auth_router
 from app.banners.router import router as banners_router
 from app.categories.router import router as categories_router
@@ -63,6 +64,7 @@ app.include_router(metafields_router, prefix=f"{prefix}/metafields", tags=["Meta
 app.include_router(orders_router, prefix=f"{prefix}/orders", tags=["Orders"])
 app.include_router(payments_router, prefix=f"{prefix}/payments", tags=["Payments"])
 app.include_router(shipping_router, prefix=f"{prefix}/shipping", tags=["Shipping"])
+app.include_router(admin_switch_router, prefix=f"{prefix}/admin/switch", tags=["Admin"])
 app.include_router(admin_router, prefix=f"{prefix}/admin", tags=["Admin"])
 app.include_router(contact_router, prefix=f"{prefix}/contact", tags=["Contact"])
 app.include_router(banners_router, prefix=f"{prefix}/banners", tags=["Banners"])

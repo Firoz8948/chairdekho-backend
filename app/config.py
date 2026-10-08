@@ -124,6 +124,13 @@ class Settings(BaseSettings):
     GOOGLE_REVIEW_URL: str = ""
     GOOGLE_REVIEWS_CACHE_HOURS: float = 12
 
+    # One-click switch between this admin panel and the paired store's admin.
+    # The same ADMIN_SWITCH_SECRET (32+ chars) must be set on both backends; empty disables it.
+    ADMIN_SWITCH_SECRET: str = ""
+    ADMIN_SWITCH_SITE: str = "chairdekho"
+    ADMIN_SWITCH_TARGET: str = "chakladekho"
+    ADMIN_SWITCH_TARGET_URL: str = "https://www.chakladekho.com"
+
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
