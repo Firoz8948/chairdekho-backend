@@ -31,5 +31,5 @@ jobs:
             git reset --hard origin/main
             docker compose up -d --build
             docker compose ps
-            curl -fsS --retry 15 --retry-delay 4 --retry-connrefused http://127.0.0.1:8000/health
+            curl -fsS --retry 15 --retry-delay 4 --retry-all-errors http://127.0.0.1:8000/health
             docker image prune -f
