@@ -52,7 +52,7 @@ def _auth_headers() -> dict[str, str]:
     }
 
 
-_BRAND_SUFFIX_RE = re.compile(r"\s*[|\u2013\u2014-]\s*lansdowne?(\s+leather)?\s*$", re.I)
+_BRAND_SUFFIX_RE = re.compile(r"\s*[|\u2013\u2014-]\s*chair\s*dekho(\.com)?\s*$", re.I)
 
 
 def _safe(value: Any, limit: int = 250) -> str:
@@ -108,7 +108,7 @@ def _products_desc(order: Order) -> str:
         base = _BRAND_SUFFIX_RE.sub("", item.name or "").strip() or "Item"
         name = f"{base} ({label})" if label else base
         parts.append(f"{name} x{int(item.quantity or 1)}")
-    return _safe(", ".join(parts), 500) or "Leather goods"
+    return _safe(", ".join(parts), 500) or "Chairs"
 
 
 def _build_manifest(order: Order, reference: str) -> dict:
@@ -142,7 +142,7 @@ def _build_manifest(order: Order, reference: str) -> dict:
         "shipment_height": str(height),
         "shipping_mode": _clean(settings.DELHIVERY_SHIPPING_MODE) or "Surface",
         "address_type": "home",
-        "seller_name": "Lansdowne Leather",
+        "seller_name": "ChairDekho",
         "seller_add": "",
         "seller_inv": order.order_id,
         "waybill": "",

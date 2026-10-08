@@ -182,7 +182,7 @@ def _build_adhoc_payload(order: Order, weight_kg: float) -> dict:
         "billing_state": order.address_state,
         "billing_country": "India",
         "billing_email": order.customer_email
-        or f"order-{order.order_id.lower()}@lansdowneleather.com",
+        or f"order-{order.order_id.lower()}@chairdekho.com",
         "billing_phone": "".join(c for c in (order.customer_phone or "") if c.isdigit())[
             -10:
         ],

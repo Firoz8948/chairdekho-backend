@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 APP_USER = "postgres"
 APP_PASSWORD = "postgres_password"
-APP_DB = "lansdowne"
+APP_DB = "chairdekho"
 
 
 def _quote_literal(value: str) -> str:
@@ -101,7 +101,7 @@ async def main(admin_password: str) -> None:
     await verify_app_connection()
     print("\nPostgreSQL is ready.")
     print(
-        "DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/lansdowne"
+        "DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/chairdekho"
     )
 
 

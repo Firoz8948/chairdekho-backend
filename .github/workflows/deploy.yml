@@ -26,8 +26,10 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
-            cd /opt/lansdowne/backend
+            cd /opt/chairdekho/backend
             git fetch origin main
             git reset --hard origin/main
             docker compose up -d --build
             docker compose ps
+            curl -fsS --retry 15 --retry-delay 4 --retry-connrefused http://127.0.0.1:8000/health
+            docker image prune -f

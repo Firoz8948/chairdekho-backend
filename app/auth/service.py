@@ -44,7 +44,7 @@ async def get_or_create_user_by_phone(
         derived_name = name.strip() or f"Customer {phone[-4:]}"
         user = User(
             phone=phone,
-            email=f"{phone}@mobile.lansdowneleather.local",
+            email=f"{phone}@mobile.chairdekho.local",
             name=derived_name,
             role="customer",
             is_active=True,

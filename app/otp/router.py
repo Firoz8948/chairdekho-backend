@@ -24,17 +24,18 @@ async def send_otp(
     if mode == "signup" and not (body.name or "").strip():
         raise HTTPException(status_code=400, detail="Please enter your name to sign up.")
 
-    existing = await auth_service.get_user_by_phone(db, phone)
-    if mode == "signin" and not existing:
-        raise HTTPException(
-            status_code=404,
-            detail="ACCOUNT_NOT_FOUND",
-        )
-    if mode == "signup" and existing:
-        raise HTTPException(
-            status_code=400,
-            detail="ACCOUNT_EXISTS",
-        )
+    if mode != "auto":
+        existing = await auth_service.get_user_by_phone(db, phone)
+        if mode == "signin" and not existing:
+            raise HTTPException(
+                status_code=404,
+                detail="ACCOUNT_NOT_FOUND",
+            )
+        if mode == "signup" and existing:
+            raise HTTPException(
+                status_code=400,
+                detail="ACCOUNT_EXISTS",
+            )
 
     return await send_otp_service.send_otp_to_phone(db, body.phone, body.name or "")
 
@@ -69,12 +70,15 @@ async def verify_otp(
         raise HTTPException(status_code=400, detail="ACCOUNT_EXISTS")
     if mode == "signin" and not existing:
         raise HTTPException(status_code=404, detail="ACCOUNT_NOT_FOUND")
+    # New number in auto mode: keep the OTP valid so the client can resubmit it with a name.
+    if mode == "auto" and not existing and not name:
+        return {"needs_name": True, "message": "Please tell us your name to continue."}
 
     user = await auth_service.get_or_create_user_by_phone(
         db,
         phone,
         name,
-        allow_create=(mode == "signup"),
+        allow_create=(mode in ("signup", "auto")),
     )
     await verify_otp_service.consume_otps_for_phone(db, phone)
 

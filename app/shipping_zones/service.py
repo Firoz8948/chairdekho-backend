@@ -74,7 +74,7 @@ def lookup_pincode_details(pincode: str) -> dict | None:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "Lansdowne/1.0",
+                "User-Agent": "ChairDekho/1.0",
                 "Accept": "application/json",
             },
         )

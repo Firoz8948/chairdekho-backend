@@ -67,7 +67,7 @@ def _api_public_base() -> str:
 
     Preference:
     1. API_PUBLIC_URL (full URL, optional)
-    2. Derive from FRONTEND_URL for Lansdowne (api.lansdowneleather.com + API_V1_PREFIX)
+    2. Derive from FRONTEND_URL for ChairDekho (api.chairdekho.com + API_V1_PREFIX)
     3. Localhost for development
     """
     base = (settings.API_PUBLIC_URL or "").rstrip("/")
@@ -76,17 +76,17 @@ def _api_public_base() -> str:
 
     frontend = (settings.FRONTEND_URL or "").lower()
     prefix = settings.API_V1_PREFIX or "/api/v1"
-    if "lansdowneleather.com" in frontend:
-        return f"https://api.lansdowneleather.com{prefix}"
+    if "chairdekho.com" in frontend:
+        return f"https://api.chairdekho.com{prefix}"
 
     if settings.ENVIRONMENT.lower() in {"production", "prod"}:
-        return f"https://api.lansdowneleather.com{prefix}"
+        return f"https://api.chairdekho.com{prefix}"
 
     return f"http://localhost:8000{prefix}"
 
 
 def _frontend_base() -> str:
-    return (settings.FRONTEND_URL or "https://www.lansdowneleather.com").rstrip("/")
+    return (settings.FRONTEND_URL or "https://www.chairdekho.com").rstrip("/")
 
 
 async def _build_checkout(
@@ -142,8 +142,8 @@ def _customer_email(customer: dict) -> str:
         return email
     phone = "".join(ch for ch in str(customer.get("mobile") or "") if ch.isdigit())
     if phone:
-        return f"{phone}@orders.lansdowneleather.com"
-    return "orders@lansdowneleather.com"
+        return f"{phone}@orders.chairdekho.com"
+    return "orders@chairdekho.com"
 
 
 async def create_payment_order(
@@ -199,7 +199,7 @@ async def _create_payu_order(checkout: dict, customer: dict, user_id: int | None
     firstname = (customer.get("name") or "Customer")[:60]
     email = _customer_email(customer)
     phone = "".join(ch for ch in str(customer.get("mobile") or "") if ch.isdigit())[-10:]
-    productinfo = "Lansdowne Order"
+    productinfo = "ChairDekho Order"
     udf1 = str(user_id or "")
     key = settings.PAYU_KEY
     salt = settings.PAYU_SALT

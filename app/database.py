@@ -157,6 +157,26 @@ async def connect_db():
                 "ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code VARCHAR(50)"
             )
         )
+        # Databases shared with an older release can carry a NOT NULL orders.is_custom
+        # column this model never writes; give it a default so inserts succeed.
+        await conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name = 'orders'
+                          AND column_name = 'is_custom'
+                    ) THEN
+                        ALTER TABLE orders ALTER COLUMN is_custom SET DEFAULT FALSE;
+                    END IF;
+                END
+                $$;
+                """
+            )
+        )
         await conn.execute(
             text(
                 "ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS audience VARCHAR(20) DEFAULT 'all'"
@@ -535,7 +555,7 @@ async def ensure_reels_category():
 
 
 async def seed_default_categories():
-    """Seed default leather categories and map existing products."""
+    """Seed default chair categories and map existing products."""
     import re
 
     from sqlalchemy import select, update
@@ -549,11 +569,14 @@ async def seed_default_categories():
         return s
 
     defaults = [
-        {"name": "Belts", "position": 0},
-        {"name": "Wallets", "position": 1},
-        {"name": "Bags", "position": 2},
-        {"name": "Accessories", "position": 3},
-        {"name": "Card Holders", "position": 4},
+        {"name": "Plastic Chairs", "position": 0},
+        {"name": "Arm Chairs", "position": 1},
+        {"name": "Armless Chairs", "position": 2},
+        {"name": "Dining Chairs", "position": 3},
+        {"name": "Garden Chairs", "position": 4},
+        {"name": "Office Chairs", "position": 5},
+        {"name": "Kids Chairs", "position": 6},
+        {"name": "Plastic Stools", "position": 7},
     ]
 
     async with AsyncSessionLocal() as session:

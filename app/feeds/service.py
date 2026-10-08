@@ -14,29 +14,38 @@ from app.config import settings
 from app.models import Product, ProductVariant
 
 
-FEED_BRAND = "Lansdowne Leather"
+FEED_BRAND = "ChairDekho"
 
-_BRAND_SUFFIX_RE = re.compile(r"\s*[|\u2013\u2014-]\s*lansdowne?(\s+leather)?\s*$", re.I)
+_BRAND_SUFFIX_RE = re.compile(r"\s*[|\u2013\u2014-]\s*chair\s*dekho(\.com)?\s*$", re.I)
 
 # First match wins; checked against name, then product_type metafield, then category.
 _GOOGLE_CATEGORIES = [
-    (re.compile(r"\bbelt", re.I), "Apparel & Accessories > Clothing Accessories > Belts"),
     (
-        re.compile(r"wallet|card\s*holder", re.I),
-        "Apparel & Accessories > Handbags, Wallets & Cases > Wallets & Money Clips",
+        re.compile(r"office|revolving|executive|ergonomic|computer|study", re.I),
+        "Furniture > Office Furniture > Office Chairs",
     ),
-    (re.compile(r"laptop|office\s+bag|briefcase", re.I), "Luggage & Bags > Briefcases"),
+    (re.compile(r"\bstools?\b", re.I), "Furniture > Chairs > Table & Bar Stools"),
+    (re.compile(r"\btables?\b", re.I), "Furniture > Tables"),
     (
-        re.compile(r"hand\s*bag|sling|tote|cross\s*body|purse|\bbag", re.I),
-        "Apparel & Accessories > Handbags, Wallets & Cases > Handbags",
+        re.compile(r"garden|outdoor|patio|lawn|balcony", re.I),
+        "Furniture > Outdoor Furniture > Outdoor Seating",
+    ),
+    (
+        re.compile(r"dining|cafe|restaurant", re.I),
+        "Furniture > Chairs > Kitchen & Dining Room Chairs",
+    ),
+    (
+        re.compile(r"arm\s*chair|with\s+arms?", re.I),
+        "Furniture > Chairs > Arm Chairs, Recliners & Sleeper Chairs",
     ),
 ]
-_DEFAULT_GOOGLE_CATEGORY = "Apparel & Accessories > Handbags, Wallets & Cases"
+_DEFAULT_GOOGLE_CATEGORY = "Furniture > Chairs"
+_KIDS_RE = re.compile(r"\bkids?\b|child|baby", re.I)
 
 
 def _site_url() -> str:
     """Storefront origin for product links; must match the canonical (non-www) URLs."""
-    url = (settings.FRONTEND_URL or "https://lansdowneleather.com").rstrip("/")
+    url = (settings.FRONTEND_URL or "https://chairdekho.com").rstrip("/")
     return re.sub(r"^(https?://)www\.", r"\1", url)
 
 
@@ -101,14 +110,10 @@ def _google_category(product: Product) -> str:
     return _DEFAULT_GOOGLE_CATEGORY
 
 
-def _gender(product: Product) -> str | None:
-    text = f"{product.name or ''} {_clean_text(product.description, 300)}"
-    if re.search(r"\bunisex\b|men\s*(&|and)\s*women|women\s*(&|and)\s*men", text, re.I):
-        return "unisex"
-    if re.search(r"\b(for\s+women|women'?s|ladies)\b", text, re.I):
-        return "female"
-    if re.search(r"\b(for\s+men|men'?s|gents)\b", text, re.I):
-        return "male"
+def _age_group(product: Product) -> str | None:
+    for source in (product.name, product.category):
+        if source and _KIDS_RE.search(source):
+            return "kids"
     return None
 
 
@@ -131,7 +136,7 @@ def product_to_feed_row(product: Product) -> dict:
     extra = [_abs_image(img.url) for img in images[1:5] if img.url]
     availability = "in stock" if _total_stock(product) > 0 else "out of stock"
     title = _BRAND_SUFFIX_RE.sub("", _clean_text(product.name, 200)).strip()[:150]
-    description = _clean_text(product.description) or f"{title} in genuine leather from {FEED_BRAND}."
+    description = _clean_text(product.description) or f"{title} at an affordable price from {FEED_BRAND}."
     link = f"{_site_url()}/products/{product.slug}"
     material = _metafield(product, "material")
     row = {
@@ -146,12 +151,11 @@ def product_to_feed_row(product: Product) -> dict:
         "image_link": primary,
         "additional_image_link": extra,
         "brand": FEED_BRAND,
-        "product_type": _clean_text(product.category, 200) or "Leather Goods",
+        "product_type": _clean_text(product.category, 200) or "Chairs",
         "google_product_category": _google_category(product),
-        "gender": _gender(product),
-        "age_group": "adult",
+        "age_group": _age_group(product),
         "color": _color(product),
-        "material": "Genuine Leather" if not material or "leather" in material.lower() else material,
+        "material": material or None,
         "item_group_id": product.color_group_id or None,
     }
     if product.mrp and product.price and product.mrp > product.price:
@@ -182,7 +186,7 @@ def build_facebook_rss(products: list[Product]) -> str:
         )
         attributes = "".join(
             f"<g:{key}>{escape(row[key])}</g:{key}>"
-            for key in ("gender", "age_group", "color", "material", "item_group_id")
+            for key in ("age_group", "color", "material", "item_group_id")
             if row.get(key)
         )
         items.append(

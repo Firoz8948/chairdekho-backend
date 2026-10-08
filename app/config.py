@@ -7,17 +7,17 @@ _ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Lansdowne"
+    APP_NAME: str = "ChairDekho"
     ENVIRONMENT: str = "development"
     API_V1_PREFIX: str = "/api/v1"
     FRONTEND_URL: str = "http://localhost:3000"
-    # Public API base for PayU surl/furl (e.g. https://api.lansdowneleather.com/api/v1)
+    # Public API base for PayU surl/furl (e.g. https://api.chairdekho.com/api/v1)
     API_PUBLIC_URL: str = ""
     # Comma-separated extra origins (e.g. preview URL + custom domain)
     CORS_ORIGINS: str = ""
 
     DATABASE_URL: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/lansdowne"
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/chairdekho"
     )
 
     JWT_SECRET_KEY: str = "change-me-in-production"
@@ -39,13 +39,13 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_FROM_NUMBER: str = ""
 
-    ADMIN_EMAIL: str = "admin@lansdowneleather.com"
+    ADMIN_EMAIL: str = "admin@chairdekho.com"
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin"
     # Locked storefront / notification identity (shown in Admin → Settings)
-    BRAND_NAME: str = "Lansdowne Leather"
-    ADMIN_NOTIFY_PHONE: str = "8979543500"
-    ADMIN_NOTIFY_EMAIL: str = "lansdowneleather1@gmail.com"
+    BRAND_NAME: str = "ChairDekho"
+    ADMIN_NOTIFY_PHONE: str = "9699164131"
+    ADMIN_NOTIFY_EMAIL: str = "brjangu29@gmail.com"
 
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     DELHIVERY_DEFAULT_BREADTH: float = 20
     DELHIVERY_DEFAULT_HEIGHT: float = 8
     DELHIVERY_SELLER_GSTIN: str = ""
-    DELHIVERY_HSN_CODE: str = "4202"
+    DELHIVERY_HSN_CODE: str = "9401"
 
     # Media storage: "auto" uses BunnyCDN when configured, otherwise local disk
     STORAGE_BACKEND: str = "auto"
@@ -112,6 +112,17 @@ class Settings(BaseSettings):
     META_ACCESS_TOKEN: str = ""
     META_TEST_EVENT_CODE: str = ""
     META_API_VERSION: str = "v21.0"
+
+    # Google reviews (Places API (New)) — storefront rating + latest reviews
+    GOOGLE_PLACES_API_KEY: str = ""
+    # Optional; when empty the place is looked up once from GOOGLE_PLACE_QUERY
+    GOOGLE_PLACE_ID: str = ""
+    GOOGLE_PLACE_QUERY: str = (
+        "Chairdekho, Umadevi Mandir, Bolinj Road, Nalasopara West, Vasai-Virar"
+    )
+    # Business Profile → "Ask for reviews" link; falls back to a writereview URL from the place id
+    GOOGLE_REVIEW_URL: str = ""
+    GOOGLE_REVIEWS_CACHE_HOURS: float = 12
 
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),

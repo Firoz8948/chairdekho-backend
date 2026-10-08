@@ -20,6 +20,7 @@ from app.otp.router import router as otp_router
 from app.payments.router import router as payments_router
 from app.products.router import router as products_router
 from app.promocodes.router import router as promocodes_router
+from app.reviews.router import router as reviews_router
 from app.shipping.router import router as shipping_router
 from app.shipping_zones.router import router as shipping_zones_router
 from app.storage.local import UPLOADS_DIR
@@ -71,11 +72,12 @@ app.include_router(
 )
 app.include_router(feeds_router, prefix=f"{prefix}/feeds", tags=["Catalog Feeds"])
 app.include_router(meta_router, prefix=f"{prefix}/meta", tags=["Meta"])
+app.include_router(reviews_router, prefix=f"{prefix}/reviews", tags=["Reviews"])
 
 
 @app.get("/")
 async def root():
-    return {"message": "Lansdowne API", "docs": "/docs"}
+    return {"message": "ChairDekho API", "docs": "/docs"}
 
 
 @app.get("/health")

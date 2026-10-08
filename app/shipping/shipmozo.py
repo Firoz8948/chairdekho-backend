@@ -182,7 +182,7 @@ def _build_push_payload(order: Order, weight_kg: float) -> dict:
             status_code=400,
             detail=f"Order {order.order_id} is missing city/state for Shipmozo.",
         )
-    email = order.customer_email or f"order-{order.order_id.lower()}@lansdowneleather.com"
+    email = order.customer_email or f"order-{order.order_id.lower()}@chairdekho.com"
 
     products = []
     for item in order.items or []:

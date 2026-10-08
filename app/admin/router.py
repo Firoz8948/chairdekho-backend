@@ -46,9 +46,9 @@ async def get_brand_settings(_=Depends(get_current_admin)):
     from app.config import settings
 
     return {
-        "brand_name": settings.BRAND_NAME or "Lansdowne Leather",
-        "phone": settings.ADMIN_NOTIFY_PHONE or "8979543500",
-        "email": settings.ADMIN_NOTIFY_EMAIL or "lansdowneleather1@gmail.com",
+        "brand_name": settings.BRAND_NAME or "ChairDekho",
+        "phone": settings.ADMIN_NOTIFY_PHONE or "9699164131",
+        "email": settings.ADMIN_NOTIFY_EMAIL or "brjangu29@gmail.com",
         "locked": True,
         "otp_enabled": bool(settings.RENFLAIR_API_KEY) and not settings.OTP_DEBUG,
         "order_sms_enabled": bool(settings.RENFLAIR_API_KEY),

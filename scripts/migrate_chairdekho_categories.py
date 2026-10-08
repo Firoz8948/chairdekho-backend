@@ -1,4 +1,4 @@
-"""One-off: seed / replace categories with Lansdowne leather categories via SQL."""
+"""One-off: seed / replace categories with ChairDekho chair categories via SQL."""
 import asyncio
 import os
 from pathlib import Path
@@ -10,11 +10,14 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 NEW = [
-    ("Belts", "belts", 0),
-    ("Wallets", "wallets", 1),
-    ("Bags", "bags", 2),
-    ("Accessories", "accessories", 3),
-    ("Card Holders", "card-holders", 4),
+    ("Plastic Chairs", "plastic-chairs", 0),
+    ("Arm Chairs", "arm-chairs", 1),
+    ("Armless Chairs", "armless-chairs", 2),
+    ("Dining Chairs", "dining-chairs", 3),
+    ("Garden Chairs", "garden-chairs", 4),
+    ("Office Chairs", "office-chairs", 5),
+    ("Kids Chairs", "kids-chairs", 6),
+    ("Plastic Stools", "plastic-stools", 7),
 ]
 
 
@@ -73,7 +76,7 @@ async def main():
                     name,
                     slug,
                 )
-        print(f"Seeded {len(NEW)} Lansdowne categories")
+        print(f"Seeded {len(NEW)} ChairDekho categories")
     finally:
         await conn.close()
 
