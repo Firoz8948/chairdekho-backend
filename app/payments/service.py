@@ -67,7 +67,7 @@ def _api_public_base() -> str:
 
     Preference:
     1. API_PUBLIC_URL (full URL, optional)
-    2. Derive from FRONTEND_URL for ChairDekho (api.chairdekho.com + API_V1_PREFIX)
+    2. Derive from FRONTEND_URL for ChairDekho (api.chairdekho.in + API_V1_PREFIX)
     3. Localhost for development
     """
     base = (settings.API_PUBLIC_URL or "").rstrip("/")
@@ -76,17 +76,17 @@ def _api_public_base() -> str:
 
     frontend = (settings.FRONTEND_URL or "").lower()
     prefix = settings.API_V1_PREFIX or "/api/v1"
-    if "chairdekho.com" in frontend:
-        return f"https://api.chairdekho.com{prefix}"
+    if "chairdekho.in" in frontend:
+        return f"https://api.chairdekho.in{prefix}"
 
     if settings.ENVIRONMENT.lower() in {"production", "prod"}:
-        return f"https://api.chairdekho.com{prefix}"
+        return f"https://api.chairdekho.in{prefix}"
 
     return f"http://localhost:8000{prefix}"
 
 
 def _frontend_base() -> str:
-    return (settings.FRONTEND_URL or "https://www.chairdekho.com").rstrip("/")
+    return (settings.FRONTEND_URL or "https://www.chairdekho.in").rstrip("/")
 
 
 async def _build_checkout(
@@ -142,8 +142,8 @@ def _customer_email(customer: dict) -> str:
         return email
     phone = "".join(ch for ch in str(customer.get("mobile") or "") if ch.isdigit())
     if phone:
-        return f"{phone}@orders.chairdekho.com"
-    return "orders@chairdekho.com"
+        return f"{phone}@orders.chairdekho.in"
+    return "orders@chairdekho.in"
 
 
 async def create_payment_order(

@@ -45,7 +45,7 @@ _KIDS_RE = re.compile(r"\bkids?\b|child|baby", re.I)
 
 def _site_url() -> str:
     """Storefront origin for product links; must match the canonical (non-www) URLs."""
-    url = (settings.FRONTEND_URL or "https://chairdekho.com").rstrip("/")
+    url = (settings.FRONTEND_URL or "https://chairdekho.in").rstrip("/")
     return re.sub(r"^(https?://)www\.", r"\1", url)
 
 

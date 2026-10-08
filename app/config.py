@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     API_V1_PREFIX: str = "/api/v1"
     FRONTEND_URL: str = "http://localhost:3000"
-    # Public API base for PayU surl/furl (e.g. https://api.chairdekho.com/api/v1)
+    # Public API base for PayU surl/furl (e.g. https://api.chairdekho.in/api/v1)
     API_PUBLIC_URL: str = ""
     # Comma-separated extra origins (e.g. preview URL + custom domain)
     CORS_ORIGINS: str = ""
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_FROM_NUMBER: str = ""
 
-    ADMIN_EMAIL: str = "admin@chairdekho.com"
+    ADMIN_EMAIL: str = "admin@chairdekho.in"
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin"
     # Locked storefront / notification identity (shown in Admin → Settings)
